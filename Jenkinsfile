@@ -13,6 +13,11 @@ pipeline {
       }
     }
     
+    stage ('JAVA') {
+    steps{
+    sh 'echo java -version' 
+    }
+  }
     
     stage ('SAST') {
       steps {
