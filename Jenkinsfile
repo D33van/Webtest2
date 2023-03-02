@@ -15,7 +15,7 @@ pipeline {
     
     stage ('JAVA') {
     steps{
-    sh 'echo java -version' 
+    sh 'java -version' 
     }
   }
     
