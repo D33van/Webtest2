@@ -11,13 +11,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    continue-on-error: true  # Continue even if the build fails
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
 
@@ -27,13 +26,33 @@ jobs:
       - name: Build application
         run: npm run build
 
-  Sast:
+  sast:
     runs-on: ubuntu-latest
     needs: build
-    continue-on-error: true  # Continue even if the SAST scan fails
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up JDK 11 # Required for SonarQube scanner
-        uses: actions/setup-java@v
+      - name: Run SAST (ESLint)
+        run: npm run lint
+
+  dast:
+    runs-on: ubuntu-latest
+    needs: sast
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install OWASP ZAP
+        run: sudo apt-get install zaproxy
+
+      - name: Run DAST (OWASP ZAP)
+        run: |
+          zap-cli start
+          zap-cli open-url http://localhost:3000 # Adjust based on your application
+          zap-cli spider http://localhost:3000
+          zap-cli active-scan http://localhost:3000
+          zap-cli alerts -l High
+
+      - name: Stop OWASP ZAP
+        run: zap-cli shutdown
